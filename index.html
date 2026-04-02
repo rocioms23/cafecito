@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Sobrantes - Café</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <div id="main-view" class="container">
+        <h1>Gestor de Sobrantes</h1>
+        
+        <div class="filters">
+            <div class="input-group">
+                <label>Categoría</label>
+                <select id="filter-category">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Producto</label>
+                <select id="filter-product">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Fecha</label>
+                <input type="date" id="filter-date">
+            </div>
+        </div>
+
+        <div class="actions">
+            <button id="btn-add-modal" class="btn-primary">Añadir Sobrante</button>
+            <button id="btn-show-all" class="btn-secondary">Ver Todos</button>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th>Total</th>
+                    <th>Desechado</th>
+                    <th>Reutilizado</th>
+                    <th>Pendiente</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <tr><td colspan="6" style="text-align:center;">Cargando inventario...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="edit-view" class="container hidden">
+        <button id="btn-back" class="btn-text">← Volver</button>
+        <h1>Gestor de Sobrantes</h1>
+        
+        <div class="product-header">
+            <h2 id="edit-product-name">Producto Seleccionado</h2>
+            <div class="product-stats">
+                <span>Total: <b id="edit-total">0</b></span> | 
+                <span>Pendiente: <b id="edit-pending">0</b></span>
+            </div>
+        </div>
+
+        <div class="action-columns">
+            <div class="column">
+                <h3>REUTILIZAR</h3>
+                <p class="status-text">Ya reutilizado: <strong id="edit-reused-amount" style="color: var(--gray-dark);">0</strong></p>
+                
+                <div class="input-group">
+                    <label>Motivo</label>
+                    <select id="reuse-reason-select">
+                        <option value="Promo">Promo</option>
+                        <option value="Desayuno Personal">Desayuno Personal</option>
+                        <option value="Degustación">Degustación</option>
+                        <option value="Donación">Donación</option>
+                        <option value="Otro">Otro...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Comentario</label>
+                    <input type="text" id="reuse-comment" placeholder="Detalle (Opcional)...">
+                </div>
+                <div class="input-group">
+                    <label>Cantidad a Reutilizar</label>
+                    <input type="number" id="reuse-amount" min="1">
+                </div>
+                <button class="btn-action btn-reuse" onclick="pedirConfirmacion('reutilizar')">Guardar Reutilizado</button>
+            </div>
+            
+            <div class="column">
+                <h3>DESECHAR</h3>
+                <p class="status-text">Ya desechado: <strong id="edit-discard-amount" style="color: #d9534f;">0</strong></p>
+                
+                <div class="input-group">
+                    <label>Motivo</label>
+                    <select id="discard-reason-select">
+                        <option value="Vencido">Vencido / Pasado</option>
+                        <option value="Roto / Feo visualmente">Roto / Feo visualmente</option>
+                        <option value="Corte de luz">Corte de luz</option>
+                        <option value="Otro">Otro...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Comentario</label>
+                    <input type="text" id="discard-comment" placeholder="Detalle (Opcional)...">
+                </div>
+                <div class="input-group">
+                    <label>Cantidad a Desechar</label>
+                    <input type="number" id="discard-amount" min="1">
+                </div>
+                <button class="btn-action btn-discard" onclick="pedirConfirmacion('desechar')">Guardar Desecho</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Añadir Nuevo Sobrante</h2>
+            <div class="input-group">
+                <label>Categoría</label>
+                <select id="add-category">
+                    <option value="">Selecciona una categoría...</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Producto</label>
+                <select id="add-product">
+                    <option value="">Selecciona un producto...</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Cantidad Sobrante Total</label>
+                <input type="number" id="add-total" min="1">
+            </div>
+            <div class="input-group">
+                <label>Motivo (Opcional)</label>
+                <input type="text" id="add-reason" placeholder="Ej: Cierre de turno, vitrina...">
+            </div>
+            <div class="modal-actions">
+                <button id="btn-cancel-add" class="btn-secondary">Cancelar</button>
+                <button id="btn-save-add" class="btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="text-align: center;">
+            <h2 id="confirm-title">¿Confirmar acción?</h2>
+            <p id="confirm-message" style="margin: 20px 0; font-size: 18px; color: var(--text-main);"></p>
+            <div class="modal-actions" style="justify-content: center;">
+                <button id="btn-cancel-confirm" class="btn-secondary">Cancelar</button>
+                <button id="btn-accept-confirm" class="btn-primary">Sí, Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
